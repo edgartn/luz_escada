@@ -1,0 +1,102 @@
+#include <Adafruit_NeoPixel.h>
+
+int PIN = 2;
+int totalLEDs = 10;
+int ledFadeTime = 0;
+
+int pushButtonDown = 3;
+int pushButtonUp = 4;
+int lastButtonStateDown = 0; 
+int lastButtonStateUp = 0;
+int isLightsOn;
+
+// Laranja = 255,69,0
+int Red   = 150;
+int Green = 60;
+int Blue  = 50;
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(totalLEDs, PIN, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  pinMode(pushButtonDown, INPUT);
+  pinMode(pushButtonUp, INPUT);
+}
+
+void loop() {
+  int buttonStateDown = digitalRead(pushButtonDown);
+  int buttonStateUp = digitalRead(pushButtonUp);
+
+  if (buttonStateDown != lastButtonStateDown) {
+    if ((buttonStateDown == HIGH) && (isLightsOn == LOW)) {
+      OnUpDown();
+      isLightsOn = HIGH;
+    } 
+    if ((buttonStateDown == LOW) && (isLightsOn == HIGH)) {
+      OffDownUp();
+      isLightsOn = LOW;
+    }  
+  }
+
+  if (buttonStateUp != lastButtonStateUp) {
+    if ((buttonStateUp == HIGH) && (isLightsOn == LOW)) {
+      OnDownUp();
+      isLightsOn = HIGH;
+    }
+    if ((buttonStateUp == LOW) && (isLightsOn == HIGH)) {
+      OffUpDown();
+      isLightsOn = LOW;
+    }  
+  }
+
+  lastButtonStateDown = buttonStateDown;
+  lastButtonStateUp   = buttonStateUp;
+
+};
+
+void OnDownUp(){
+  for (int i = 0; i < strip.numPixels(); i++) {
+    rgbFadeIn(Red, Green, Blue, ledFadeTime, i);
+  } 
+};
+
+void OnUpDown(){
+  for (int i = strip.numPixels(); i >= 0; i--) {
+    rgbFadeIn(Red, Green, Blue, ledFadeTime, i);
+  } 
+};
+
+void OffDownUp(){
+  for (int i = 0; i < strip.numPixels(); i++) {
+    rgbFadeOut(Red, Green, Blue, ledFadeTime, i);
+  }
+};
+
+void OffUpDown(){
+  for (int i = strip.numPixels(); i >= 0; i--) {
+    rgbFadeOut(Red, Green, Blue, ledFadeTime, i);
+  }
+};
+
+void rgbFadeIn(uint8_t pRed, uint8_t pGreen, uint8_t pBlue, int pDelay, int pLedAdress) {
+  for(uint8_t b = 0; b < 255; b++) {
+    strip.setPixelColor(pLedAdress, pRed * b/255, pGreen * b/255, pBlue * b/255);
+    strip.show();
+    delay(pDelay);
+  }
+};
+
+void rgbFadeOut(uint8_t pRed, uint8_t pGreen, uint8_t pBlue, int pDelay, int pLedAdress) {
+  for(uint8_t b = 255; b > 0; b--) {
+    strip.setPixelColor(pLedAdress, pRed * b/255, pGreen * b/255, pBlue * b/255);
+    strip.show();
+    delay(pDelay);
+  }
+  // para apagar totalmente os leds
+  for(uint8_t b = 255; b > 0; b--) {
+    strip.setPixelColor(pLedAdress, 0);
+    strip.show();
+    delay(pDelay);
+  }
+};
